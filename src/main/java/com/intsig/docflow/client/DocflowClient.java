@@ -6,6 +6,7 @@ import com.intsig.docflow.exception.ValidationException;
 import com.intsig.docflow.http.AuthHandler;
 import com.intsig.docflow.http.HttpClient;
 import com.intsig.docflow.i18n.I18nManager;
+import com.intsig.docflow.resource.BoundWorkspaceResource;
 import com.intsig.docflow.resource.CategoryResource;
 import com.intsig.docflow.resource.FileResource;
 import com.intsig.docflow.resource.ReviewResource;
@@ -35,6 +36,15 @@ import org.slf4j.LoggerFactory;
  *     .maxRetries(5)
  *     .language("en_US")
  *     .build();
+ *
+ * // 方式4: 使用配置对象（appId 和 secretCode 在配置中设置）
+ * DocflowConfig config = DocflowConfig.builder()
+ *     .appId("your-app-id")
+ *     .secretCode("your-secret-code")
+ *     .baseUrl("https://custom.api.com")
+ *     .timeout(60)
+ *     .build();
+ * DocflowClient client = new DocflowClient(config);
  *
  * // 使用客户端
  * WorkspaceCreateResponse workspace = client.workspace().create(
@@ -90,6 +100,54 @@ public class DocflowClient implements AutoCloseable {
         }
         if (secretCode == null || secretCode.trim().isEmpty()) {
             throw new ValidationException("密钥不能为空");
+        }
+
+        this.config = config;
+
+        // 设置语言
+        try {
+            I18nManager.getInstance().setLanguage(config.getLanguage());
+        } catch (IllegalArgumentException e) {
+            logger.warn("不支持的语言: {}, 使用默认语言", config.getLanguage());
+            I18nManager.getInstance().setLanguage(DocflowConstants.DEFAULT_LANGUAGE);
+        }
+
+        // 初始化认证处理器
+        this.authHandler = new AuthHandler(appId, secretCode);
+
+        // 初始化 HTTP 客户端
+        this.httpClient = new HttpClient(config.getBaseUrl(), authHandler, config);
+
+        // 初始化资源操作接口
+        this.workspaceResource = new WorkspaceResource(httpClient);
+        this.categoryResource = new CategoryResource(httpClient);
+        this.fileResource = new FileResource(httpClient);
+        this.reviewResource = new ReviewResource(httpClient);
+
+        logger.info("DocflowClient 初始化完成: baseUrl={}, language={}",
+                config.getBaseUrl(), config.getLanguage());
+    }
+
+    /**
+     * 构造 DocFlow 客户端（仅使用配置对象）
+     * <p>
+     * appId 和 secretCode 从配置对象中读取
+     * </p>
+     *
+     * @param config 配置对象（必须包含 appId 和 secretCode）
+     * @throws ValidationException 当 appId 或 secretCode 未在配置中设置时
+     */
+    public DocflowClient(DocflowConfig config) {
+        // 从配置中获取认证信息
+        String appId = config.getAppId();
+        String secretCode = config.getSecretCode();
+
+        // 参数校验
+        if (appId == null || appId.trim().isEmpty()) {
+            throw new ValidationException("应用ID不能为空（请在配置中设置 appId）");
+        }
+        if (secretCode == null || secretCode.trim().isEmpty()) {
+            throw new ValidationException("密钥不能为空（请在配置中设置 secretCode）");
         }
 
         this.config = config;
@@ -187,6 +245,34 @@ public class DocflowClient implements AutoCloseable {
     }
 
     /**
+     * 创建绑定工作空间ID的资源（链式调用）
+     * <p>
+     * 通过绑定工作空间ID，后续操作无需重复传递该参数
+     * </p>
+     *
+     * <p>使用示例：</p>
+     * <pre>{@code
+     * // 创建绑定的工作空间资源
+     * BoundWorkspaceResource ws = client.workspace("workspace-id-123");
+     *
+     * // 获取工作空间详情（无需再传workspace_id）
+     * WorkspaceInfo info = ws.get();
+     *
+     * // 链式访问类别资源
+     * BoundCategoryResource cat = ws.category("category-id-456");
+     * cat.fields().add(fieldConfig);
+     * cat.tables().add("表格名称");
+     * cat.samples().upload(new File("sample.pdf"));
+     * }</pre>
+     *
+     * @param workspaceId 工作空间ID
+     * @return 绑定的工作空间资源
+     */
+    public BoundWorkspaceResource workspace(String workspaceId) {
+        return new BoundWorkspaceResource(workspaceResource, categoryResource, workspaceId);
+    }
+
+    /**
      * 获取类别资源操作接口
      *
      * @return CategoryResource
@@ -280,11 +366,13 @@ public class DocflowClient implements AutoCloseable {
 
         public Builder appId(String appId) {
             this.appId = appId;
+            configBuilder.appId(appId);
             return this;
         }
 
         public Builder secretCode(String secretCode) {
             this.secretCode = secretCode;
+            configBuilder.secretCode(secretCode);
             return this;
         }
 
@@ -314,7 +402,12 @@ public class DocflowClient implements AutoCloseable {
         }
 
         public DocflowClient build() {
-            return new DocflowClient(appId, secretCode, configBuilder.build());
+            // 如果在 Builder 中设置了 appId 和 secretCode，使用传统构造函数
+            if (appId != null && secretCode != null) {
+                return new DocflowClient(appId, secretCode, configBuilder.build());
+            }
+            // 否则使用配置对象构造函数（appId 和 secretCode 从配置中读取）
+            return new DocflowClient(configBuilder.build());
         }
     }
 }

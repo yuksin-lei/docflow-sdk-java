@@ -137,27 +137,6 @@ for (FileInfo file : files) {
 
 详细说明请参考 [**分页迭代器使用指南**](ITERATOR_GUIDE.md)
 
----
-
-## 📈 优化建议
-
-参考业界最佳实践（AWS SDK、Stripe SDK 等），我们为项目准备了全面的优化建议：
-
-- 📋 [**优化总览**](OPTIMIZATION_SUMMARY.md) - 快速了解优化建议
-- 🗺️ [**优化路线图**](OPTIMIZATION_ROADMAP.md) - 详细的15项优化建议
-- 💻 [**实现示例**](OPTIMIZATION_EXAMPLES.md) - 具体的代码实现
-- ✅ [**检查清单**](OPTIMIZATION_CHECKLIST.md) - 对照业界标准自查
-
-**核心优化方向**：
-- ⚡ 异步/响应式编程支持
-- 🔧 完善的拦截器链
-- 📊 可观测性增强（Metrics + Tracing）
-- 🧪 完整的 CI/CD 流程
-- 🎯 智能重试策略
-- 📦 批量操作优化
-
-查看 [优化总览](OPTIMIZATION_SUMMARY.md) 了解详情。
-
 ## 核心功能
 
 ### 工作空间管理

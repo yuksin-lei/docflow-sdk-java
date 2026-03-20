@@ -16,7 +16,7 @@ public class DocflowConstants {
     /**
      * API 路径前缀
      */
-    public static final String API_PREFIX = "/api/app-api/sip/platform/v2";
+    public static final String API_PREFIX = "/app-api/sip/platform/v2";
 
     /**
      * 默认请求超时时间（秒）

@@ -13,6 +13,16 @@ import java.util.Set;
 public class DocflowConfig {
 
     /**
+     * 应用ID
+     */
+    private String appId;
+
+    /**
+     * 密钥
+     */
+    private String secretCode;
+
+    /**
      * API 基础地址
      */
     private String baseUrl;
@@ -51,6 +61,8 @@ public class DocflowConfig {
      * 私有构造函数，使用 Builder 模式
      */
     private DocflowConfig(Builder builder) {
+        this.appId = builder.appId;
+        this.secretCode = builder.secretCode;
         this.baseUrl = builder.baseUrl;
         this.timeout = builder.timeout;
         this.maxRetries = builder.maxRetries;
@@ -79,6 +91,14 @@ public class DocflowConfig {
     }
 
     // Getters
+    public String getAppId() {
+        return appId;
+    }
+
+    public String getSecretCode() {
+        return secretCode;
+    }
+
     public String getBaseUrl() {
         return baseUrl;
     }
@@ -116,6 +136,8 @@ public class DocflowConfig {
      * 配置构建器
      */
     public static class Builder {
+        private String appId;
+        private String secretCode;
         private String baseUrl = DocflowConstants.DEFAULT_BASE_URL;
         private int timeout = DocflowConstants.DEFAULT_TIMEOUT;
         private int maxRetries = DocflowConstants.DEFAULT_MAX_RETRIES;
@@ -123,6 +145,16 @@ public class DocflowConfig {
         private String language = DocflowConstants.DEFAULT_LANGUAGE;
         private Set<Integer> retryStatusCodes = new HashSet<>(Arrays.asList(423, 429, 500, 503, 504, 900));
         private Set<String> retryMethods = new HashSet<>(Arrays.asList("GET", "POST", "PUT", "DELETE"));
+
+        public Builder appId(String appId) {
+            this.appId = appId;
+            return this;
+        }
+
+        public Builder secretCode(String secretCode) {
+            this.secretCode = secretCode;
+            return this;
+        }
 
         public Builder baseUrl(String baseUrl) {
             this.baseUrl = baseUrl;

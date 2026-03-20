@@ -1,0 +1,29 @@
+# 统一行尾符
+* text=auto eol=lf
+
+# Java 源文件
+*.java text eol=lf
+
+# XML 配置文件
+*.xml text eol=lf
+
+# Markdown 文档
+*.md text eol=lf
+
+# YAML 配置
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Properties 文件
+*.properties text eol=lf
+
+# Shell 脚本
+*.sh text eol=lf
+
+# 二进制文件
+*.jar binary
+*.class binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
